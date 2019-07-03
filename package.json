@@ -1,0 +1,16 @@
+{
+  "name": "cloud-firestore-emulator-javascript-quickstart",
+  "version": "1.0.2",
+  "description": "Cloud Firestore emulator testing",
+  "scripts": {
+    "format": "prettier --write **/*.js",
+    "test": "mocha"
+  },
+  "devDependencies": {
+    "@firebase/testing": "^0.11.1",
+    "eslint": "^6.0.1",
+    "filesystem": "^1.0.1",
+    "mocha": "^6.1.0",
+    "prettier": "^1.18.2"
+  }
+}
