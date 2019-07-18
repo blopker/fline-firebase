@@ -1,5 +1,6 @@
 const firebase = require("@firebase/testing");
 const fs = require("fs");
+const assert = require("assert");
 
 /*
  * ============
@@ -47,18 +48,6 @@ describe("App", () => {
     await firebase.assertFails(profile.set({ birthday: "January 1" }));
   });
 
-  it("should enforce the createdAt date in user profiles", async () => {
-    const db = authedApp({ uid: "alice" });
-    const profile = db.collection("users").doc("alice");
-    await firebase.assertFails(profile.set({ birthday: "January 1" }));
-    await firebase.assertSucceeds(
-      profile.set({
-        birthday: "January 1",
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      })
-    );
-  });
-
   it("should only let users create their own profile", async () => {
     const db = authedApp({ uid: "alice" });
     await firebase.assertSucceeds(
@@ -81,7 +70,7 @@ describe("App", () => {
     );
   });
 
-  it("should only let the user read their own profile", async () => {
+  it("should only let the user read their own data", async () => {
     // Unauthed user
     const db = authedApp(null);
     const profile = db.collection("users").doc("alice");
@@ -93,50 +82,32 @@ describe("App", () => {
     await firebase.assertFails(profile2.get());
   });
 
-  it("should let anyone create a room", async () => {
-    const db = authedApp({ uid: "alice" });
-    const room = db.collection("rooms").doc("firebase");
-    await firebase.assertSucceeds(
-      room.set({
-        owner: "alice",
-        topic: "All Things Firebase"
-      })
-    );
-  });
+  it("should only let the user update their own data", async () => {
+    // create data
+    let db = authedApp({ uid: "alice" });
+    let profile = db.collection("users").doc("alice");
+    await firebase.assertSucceeds(profile.set({ myData: "isgreat" }));
 
-  it("should force people to name themselves as room owner when creating a room", async () => {
-    const db = authedApp({ uid: "alice" });
-    const room = db.collection("rooms").doc("firebase");
-    await firebase.assertFails(
-      room.set({
-        owner: "scott",
-        topic: "Firebase Rocks!"
-      })
-    );
-  });
+    // get original
+    db = authedApp({ uid: "alice" });
+    profile = db.collection("users").doc("alice");
+    let data = await profile.get();
+    assert.equal(data.data().myData, "isgreat");
 
-  it("should not let one user steal a room from another user", async () => {
-    const alice = authedApp({ uid: "alice" });
-    const bob = authedApp({ uid: "bob" });
+    // update
+    db = authedApp({ uid: "alice" });
+    profile = db.collection("users").doc("alice");
+    await firebase.assertSucceeds(profile.set({ myData: "isgreat2" }));
 
-    await firebase.assertSucceeds(
-      bob
-        .collection("rooms")
-        .doc("snow")
-        .set({
-          owner: "bob",
-          topic: "All Things Snowboarding"
-        })
-    );
+    // get updated
+    db = authedApp({ uid: "alice" });
+    profile = db.collection("users").doc("alice");
+    data = await profile.get();
+    assert.equal(data.data().myData, "isgreat2");
 
-    await firebase.assertFails(
-      alice
-        .collection("rooms")
-        .doc("snow")
-        .set({
-          owner: "alice",
-          topic: "skiing > snowboarding"
-        })
-    );
+    // Authed user, but not the right user
+    db = authedApp({ uid: "bob" });
+    profile = db.collection("users").doc("alice");
+    await firebase.assertFails(profile.set({ myData: "isgreat3" }));
   });
 });
