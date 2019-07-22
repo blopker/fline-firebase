@@ -1,5 +1,6 @@
 {
   "projects": {
-    "staging": "fline-app-dev"
+    "staging": "fline-app-dev",
+    "production": "fline-app"
   }
 }

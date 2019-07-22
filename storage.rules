@@ -1,0 +1,10 @@
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Limit dumps to 100mb
+    match /databases/{userId}/database.json {
+      allow read, write, update: if request.auth.uid == userId
+            && request.resource.size < 100 * 1024 * 1024;
+    }
+  }
+}

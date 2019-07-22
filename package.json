@@ -4,7 +4,8 @@
   "description": "Cloud Firestore emulator testing",
   "scripts": {
     "format": "prettier --write **/*.js",
-    "test": "mocha"
+    "test": "mocha --file test/setup.js",
+    "deploy": "firebase deploy"
   },
   "devDependencies": {
     "@firebase/testing": "^0.11.1",
